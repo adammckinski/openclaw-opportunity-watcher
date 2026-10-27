@@ -293,54 +293,91 @@ If the conflict cannot be resolved, the system preserves:
 
 ## Operating Artifacts
 
-The agent is implemented as a collection of operating artifacts rather than relying on a single monolithic prompt.
+The repository documents the agent as an engineered system rather than relying on a single system prompt.
 
-### `AGENTS.md`
+### [`AGENTS.md`](./AGENTS.md)
 
-Defines the sanitized operating program, including:
+Defines the sanitized public operating program for the autonomous agent, including:
 
-- mission
-- evidence boundaries
+- mission and decision boundaries
+- least-privilege tool design
+- trust and evidence boundaries
+- external-content handling
 - verification behavior
-- hard filters
+- hard filters and suppression integrity
 - uncertainty handling
 - notification policy
 - prohibited autonomous actions
 - failure behavior
+- persistent-state and duplicate-control principles
+- human approval boundaries
 
-### `SEARCH_RULES.md`
+The central governance principle is:
 
-Defines generalized discovery and verification policy, including:
+> **High initiative. Low authority.**
+
+The public artifact demonstrates how autonomous research behavior is constrained without exposing the private decision strategy used by the production deployment.
+
+### [`SEARCH_RULES.md`](./SEARCH_RULES.md)
+
+Defines the generalized discovery, verification, provenance, and suppression methodology, including:
 
 - source-authority classification
-- verification gates
+- discovery-versus-verification boundaries
 - provenance requirements
+- current-status verification
+- evidence freshness
 - uncertainty preservation
+- conflicting-evidence handling
+- geography and work-arrangement verification
+- hard-filter sequencing
 - suppression integrity
-- geography handling
-- conflicting-evidence behavior
+- canonical-source handling
+- duplicate discovery
+- reverification and state changes
+- notification eligibility
 
-Private targeting strategy, employer preferences, compensation criteria, personal career rules, and role-specific calibration are intentionally excluded from the public version.
+Its central verification principle is:
 
-### `CASE_STUDY_TOOL_SEARCH.md`
+> **Discovery finds possibilities. Evidence earns confidence.**
+
+Private targeting strategy, employer preferences, compensation criteria, personal career rules, proprietary prioritization logic, and role-specific calibration are intentionally excluded from the public version.
+
+### [`CASE_STUDY_TOOL_SEARCH.md`](./CASE_STUDY_TOOL_SEARCH.md)
 
 Documents a significant orchestration failure discovered during implementation.
 
-A local model repeatedly produced malformed tool operations through the agent runtime. Instead of assuming the LLM was incapable of reliable tool use, the execution path was decomposed and tested layer by layer.
+A local model repeatedly produced malformed tool operations when operating through the agent runtime.
 
-Direct testing against Ollama demonstrated that the same model could produce valid native tool calls when OpenClaw's orchestration layer was bypassed.
+The investigation isolated the potential failure across:
 
-Further isolation identified an unnecessary structured Tool Search abstraction between the model and its explicitly permitted tools.
+```text
+Model
+  ↓
+Inference Runtime
+  ↓
+Provider / Adapter
+  ↓
+Agent Runtime
+  ↓
+Tool Abstraction
+```
 
-After removing that indirection, a controlled test changed from repeated failures to:
+Direct API testing demonstrated that the underlying model could generate valid native tool calls when the orchestration layer was bypassed.
+
+Further isolation identified an automatically introduced structured tool-discovery abstraction as the failure point.
+
+Disabling that unnecessary indirection reduced the model-facing tool surface to the four explicitly permitted tools.
+
+A controlled test subsequently changed from repeated malformed operations to:
 
 ```text
 Tool calls: 1
-Failures: 0
-Result: Successful
+Successful: 1
+Failed: 0
 ```
 
-**Read the full case study:** [Diagnosing Local LLM Tool-Calling Failures in OpenClaw](./CASE_STUDY_TOOL_SEARCH.md)
+The full diagnostic process, hypothesis isolation, root cause, remediation, and security implications are documented in the case study.
 
 ---
 
@@ -529,14 +566,12 @@ It is an experiment in building a **constrained autonomous research system** whe
 ```text
 .
 ├── README.md
-├── CASE_STUDY_TOOL_SEARCH.md
 ├── AGENTS.md
 ├── SEARCH_RULES.md
-└── docs/
-    └── architecture.md
+└── CASE_STUDY_TOOL_SEARCH.md
 ```
 
-> **Note:** Some artifacts shown above are planned and will be added as the public documentation is sanitized and finalized.
+The repository is intentionally documentation-focused. These artifacts capture the architecture, agent governance model, verification methodology, and a real implementation case study.
 
 Personal evidence, private targeting criteria, infrastructure identifiers, authentication material, machine-specific details, and operational secrets are intentionally excluded.
 
