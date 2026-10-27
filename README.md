@@ -1,16 +1,16 @@
-# Executive Cybersecurity Opportunity Watcher
+# OpenClaw Opportunity Watcher
 
-A security-first autonomous research agent designed to discover, verify, filter, and selectively surface high-value cybersecurity opportunities using local AI inference.
+A security-first autonomous research agent that uses local AI inference, evidence-grounded verification, and least-privilege design to discover and selectively surface high-value cybersecurity opportunities.
 
 The project explores a broader engineering question:
 
-> How do you give an AI agent enough autonomy to perform useful research while keeping its authority, evidence boundaries, and blast radius tightly constrained?
+> **How do you give an AI agent enough autonomy to perform useful research while keeping its authority, evidence boundaries, and blast radius tightly constrained?**
 
 The operating principle is:
 
 **SEARCH FREQUENTLY → VERIFY → FILTER AGGRESSIVELY → INTERRUPT RARELY**
 
-This is a personal engineering project focused on local AI, agent orchestration, Zero Trust design principles, evidence-grounded reasoning, and least-privilege autonomous systems.
+This is a personal engineering project focused on local AI, agent orchestration, Zero Trust design principles, evidence provenance, and constrained autonomous systems.
 
 **Status: Integration validation in progress.**
 
@@ -18,7 +18,7 @@ This is a personal engineering project focused on local AI, agent orchestration,
 
 ## Why This Project Exists
 
-Most AI job-search workflows optimize for volume: find more listings, score more jobs, generate more applications.
+Many AI-assisted job-search workflows optimize for volume: find more listings, score more jobs, and generate more applications.
 
 This project deliberately takes the opposite approach.
 
@@ -29,17 +29,17 @@ Its purpose is to:
 1. Discover potentially relevant opportunities.
 2. Verify material facts against retrieved evidence.
 3. Distinguish authoritative sources from aggregators and reposts.
-4. Apply deterministic suppression rules before deeper analysis.
+4. Apply hard suppression rules before deeper analysis.
 5. Evaluate surviving opportunities against explicitly approved candidate evidence.
 6. Escalate only opportunities that warrant human attention.
 
-Zero alerts is an acceptable outcome.
+**Zero alerts is an acceptable outcome.**
 
 The system is intentionally prohibited from autonomously applying for positions, contacting recruiters, modifying professional materials, or expanding its own permissions.
 
 The design philosophy is:
 
-**High initiative. Low authority.**
+> **High initiative. Low authority.**
 
 ---
 
@@ -59,11 +59,11 @@ flowchart LR
     B --> A
 ```
 
-OpenClaw runs within an Umbrel-managed containerized environment while Ollama provides local inference from a separate system.
+OpenClaw runs within a containerized orchestration environment while Ollama provides local inference from a separate system.
 
-The model endpoint is not broadly exposed to the local network. Connectivity between the orchestration environment and inference service is provided through Tailscale's private encrypted network.
+The model endpoint is not broadly exposed to the local network. Connectivity between the orchestration environment and inference service is provided through a private encrypted network overlay.
 
-This creates the logical inference path:
+The logical inference path is:
 
 **OpenClaw → Tailscale → Ollama → Local LLM**
 
@@ -73,17 +73,14 @@ This creates the logical inference path:
 flowchart LR
     A[Opportunity Watcher] --> B[web_search]
     B --> C[Discovery Sources]
-
     C --> D[Candidate URLs]
     D --> E[web_fetch]
     E --> F[Retrieved Evidence]
-
     F --> G[Source Authority]
     G --> H[Status Verification]
     H --> I[Hard Filters]
     I --> J[Fit Analysis]
     J --> K[Notification Gate]
-
     K -->|High Potential| L[Human Review]
     K -->|Insufficient Signal| M[Suppress / No Alert]
 ```
@@ -96,7 +93,7 @@ Where stronger evidence is required, the agent retrieves the underlying source b
 
 ## Trust Model
 
-The system separates several categories of information that autonomous agents can easily conflate.
+The system separates categories of information that autonomous agents can easily conflate.
 
 ### Trusted Candidate Evidence
 
@@ -132,9 +129,9 @@ An employer-controlled careers domain may be authoritative for the employer whil
 
 Importantly:
 
-**Source authority does not equal current opportunity status.**
+> **Source authority does not equal current opportunity status.**
 
-An authoritative page can describe a closed or expired opportunity.
+An authoritative employer page can still describe a closed or expired opportunity.
 
 ---
 
@@ -142,7 +139,7 @@ An authoritative page can describe a closed or expired opportunity.
 
 Material facts are intentionally separated from inference.
 
-For example:
+For opportunity status, the system uses states such as:
 
 ```text
 VERIFIED OPEN
@@ -156,15 +153,16 @@ If current evidence cannot establish whether an opportunity is accepting applica
 
 It does not convert uncertainty into a positive assertion simply because doing so would produce a more complete answer.
 
-The same principle applies to:
+The same principle applies to material facts such as:
 
 - location
-- remote/hybrid status
+- remote or hybrid status
 - travel
 - compensation
 - qualifications
 - organizational responsibility
-- other material employment facts
+
+Unknown is treated as a valid engineering state rather than a reasoning failure.
 
 ---
 
@@ -174,25 +172,25 @@ Hard filters execute before an opportunity is presented as a candidate.
 
 An opportunity that fails a hard requirement may be retained internally for audit or deduplication purposes, but it must not appear in the final candidate-opportunity list.
 
-This creates a distinction between:
+A suppressed path looks like:
 
 ```text
 DISCOVERED
-     ↓
+    ↓
 VERIFIED
-     ↓
+    ↓
 SUPPRESSED
 ```
 
-and:
+A surviving opportunity follows a different path:
 
 ```text
 DISCOVERED
-     ↓
+    ↓
 VERIFIED
-     ↓
+    ↓
 QUALIFIED FOR ANALYSIS
-     ↓
+    ↓
 NOTIFICATION GATE
 ```
 
@@ -204,7 +202,7 @@ This prevents a common agent failure mode: correctly identifying a disqualifying
 
 The Opportunity Watcher does not receive every capability available from the orchestration platform.
 
-Its active tool surface is intentionally narrow:
+Its operational tool surface is intentionally narrow:
 
 ```text
 read
@@ -229,15 +227,73 @@ The security objective is not to prevent the model from reasoning autonomously.
 
 It is to prevent reasoning autonomy from automatically becoming **execution authority**.
 
-The resulting model is:
+> **Autonomous research does not require autonomous authority.**
 
-**High initiative. Low authority.**
+---
+
+## Evidence Boundaries
+
+A core requirement is preventing the model from turning desired job qualifications into fabricated candidate qualifications.
+
+The system therefore maintains an explicit evidence hierarchy.
+
+Approved candidate evidence can establish capability.
+
+External job content cannot.
+
+For example, if a job posting requires formal people management but approved candidate evidence establishes only strategic leadership, cross-functional leadership, program leadership, or executive advisory experience, the agent may not silently convert those into direct-report management.
+
+Similarly, vendor-specific experience must not be invented simply because underlying domain expertise is transferable.
+
+The system distinguishes between:
+
+- directly supported capability
+- transferable capability
+- unsupported capability
+- conflicting evidence
+- unknown information
+
+This keeps opportunity analysis grounded in evidence rather than optimized for a positive match.
+
+---
+
+## Provenance
+
+Provenance is treated as part of the decision itself.
+
+The system must not infer source authority from the employer named on a page.
+
+For example:
+
+```text
+Employer named on page: Example Corp
+Actual source: Third-party job board
+Authority: THIRD PARTY
+```
+
+versus:
+
+```text
+Employer named on page: Example Corp
+Actual source: Employer-controlled careers domain
+Authority: EMPLOYER CONTROLLED
+```
+
+The authority classification follows the retrieved source.
+
+It does not follow the branding.
+
+When discovery and verification evidence conflict, stronger authoritative evidence is preferred when available.
+
+If the conflict cannot be resolved, the system preserves:
+
+**UNKNOWN**
 
 ---
 
 ## Operating Artifacts
 
-The repository documents the agent as an engineered system rather than relying on a single system prompt.
+The agent is implemented as a collection of operating artifacts rather than relying on a single monolithic prompt.
 
 ### `AGENTS.md`
 
@@ -270,244 +326,75 @@ Private targeting strategy, employer preferences, compensation criteria, persona
 
 Documents a significant orchestration failure discovered during implementation.
 
-A local model repeatedly produced malformed tool operations when operating through the agent runtime.
+A local model repeatedly produced malformed tool operations through the agent runtime. Instead of assuming the LLM was incapable of reliable tool use, the execution path was decomposed and tested layer by layer.
 
-The investigation isolated the potential failure across:
+Direct testing against Ollama demonstrated that the same model could produce valid native tool calls when OpenClaw's orchestration layer was bypassed.
 
-```text
-Model
-  ↓
-Inference Runtime
-  ↓
-Provider / Adapter
-  ↓
-Agent Runtime
-  ↓
-Tool Abstraction
-```
+Further isolation identified an unnecessary structured Tool Search abstraction between the model and its explicitly permitted tools.
 
-Direct API testing demonstrated that the underlying model could generate valid native tool calls when the orchestration layer was bypassed.
-
-Further isolation identified an automatically introduced structured tool-discovery abstraction as the failure point.
-
-Disabling that unnecessary indirection reduced the model-facing tool surface to the four explicitly permitted tools.
-
-A controlled test subsequently changed from repeated malformed operations to:
+After removing that indirection, a controlled test changed from repeated failures to:
 
 ```text
 Tool calls: 1
-Successful: 1
-Failed: 0
-```
-
-The full diagnostic process is documented separately in the case study.
-
----
-
-## Tool-Calling Failure: Root-Cause Summary
-
-One of the most significant engineering problems encountered during implementation initially appeared to be a local-model reliability problem.
-
-Symptoms included:
-
-- malformed tool arguments
-- repeated failed tool operations
-- invalid tool-call structures
-- retry loops
-- hallucinated tool identifiers
-- unsuccessful file reads
-
-Some test runs produced approximately 30 failed tool operations.
-
-Several plausible failure domains existed:
-
-1. The LLM itself
-2. Ollama
-3. Provider/API compatibility
-4. Tool schemas
-5. OpenClaw's orchestration layer
-6. Context construction
-7. Session contamination
-
-Rather than immediately replacing the model, the layers were isolated.
-
-A direct native Ollama API test bypassed OpenClaw while presenting the model with a tool definition.
-
-The model generated a valid native tool call.
-
-That materially changed the hypothesis.
-
-The underlying model was capable of performing the requested structured operation, so investigation moved upward into the orchestration layer.
-
-Inspection showed that the model was receiving additional structured tool-discovery abstractions rather than only the explicitly permitted operational tools.
-
-The model-facing surface included meta-tools used to discover, describe, and invoke other tools.
-
-That additional indirection proved unreliable with the local model.
-
-Structured Tool Search was disabled.
-
-The model-facing tool surface then became exactly:
-
-```text
-ls
-read
-web_search
-web_fetch
-```
-
-A controlled file-read test subsequently completed with:
-
-```text
-Calls: 1
 Failures: 0
 Result: Successful
 ```
 
-This was an important engineering lesson:
-
-> An apparent LLM failure may actually be an orchestration failure.
+**Read the full case study:** [Diagnosing Local LLM Tool-Calling Failures in OpenClaw](./CASE_STUDY_TOOL_SEARCH.md)
 
 ---
 
-## Evidence Boundaries
+## Key Engineering Lessons
 
-A core requirement is preventing the model from turning desired job qualifications into fabricated candidate qualifications.
+### Agent Failures Are Not Always Model Failures
 
-The system therefore maintains an explicit evidence hierarchy.
-
-Approved candidate evidence can establish capability.
-
-External job content cannot.
-
-For example, if a job posting requires formal people management but approved candidate evidence establishes only strategic leadership, cross-functional leadership, program leadership, or executive advisory experience, the agent may not silently convert those into direct-report management.
-
-Similarly, vendor-specific experience must not be invented simply because underlying domain expertise is transferable.
-
-The system distinguishes between:
-
-- directly supported capability
-- transferable capability
-- unsupported capability
-- conflicting evidence
-- unknown information
-
-This is intended to keep opportunity analysis grounded in evidence rather than optimized for a positive match.
-
----
-
-## Web Discovery and Verification
-
-The watcher uses separate operations for discovery and retrieval.
-
-### Discovery
-
-`web_search` identifies potentially relevant opportunities and sources.
-
-Search results are not automatically considered authoritative.
-
-### Verification
-
-`web_fetch` retrieves source material when additional evidence is required.
-
-The agent then evaluates:
-
-- actual source domain
-- source authority
-- current opportunity status
-- geography
-- work arrangement
-- material requirements
-- other decision-relevant facts
-
-Third-party sources may be useful for discovery while remaining insufficient for authoritative verification.
-
----
-
-## Provenance Rules
-
-Provenance is treated as part of the decision itself.
-
-The system must not infer source authority from the employer named in a page.
-
-For example:
-
-```text
-Employer named on page: Example Corp
-Actual source domain: third-party-job-board.example
-Source authority: THIRD PARTY
-```
-
-versus:
-
-```text
-Employer named on page: Example Corp
-Actual source domain: careers.example.com
-Source authority: EMPLOYER CONTROLLED
-```
-
-The authority classification follows the retrieved source.
-
-It does not follow the branding.
-
-When discovery and verification evidence conflict, the stronger authoritative evidence is preferred when available.
-
-If the conflict cannot be resolved:
-
-**UNKNOWN**
-
-is preserved.
-
----
-
-## Engineering Lessons
-
-### Agent failures are not always model failures
-
-A malformed agent action can originate from:
+An agent failure can originate from:
 
 - the model
 - inference runtime
-- API compatibility layer
+- provider or API adapter
 - tool schema
 - orchestration framework
 - context construction
 - tool abstraction
 - session state
+- external dependencies
 
 Replacing the model before isolating these layers can hide the actual defect.
 
-### Retrieval is not verification
+### Retrieval Is Not Verification
 
 Finding a page and proving a material fact are different operations.
 
 Discovery evidence should trigger verification rather than automatically become verified truth.
 
-### Provenance must survive the reasoning chain
+### Provenance Must Survive the Reasoning Chain
 
 An agent can retrieve a third-party source and later accidentally describe the information as employer-verified.
 
-Source identity therefore needs to remain attached to claims throughout the workflow.
+Source identity therefore needs to remain attached to material claims throughout the workflow.
 
-### Unknown is a valid engineering state
+### Unknown Is a Valid State
 
 Forcing binary conclusions from incomplete evidence increases hallucination risk.
 
 `UNKNOWN` is intentionally modeled as a legitimate outcome.
 
-### Behavioral instructions are not security controls
+### Behavioral Instructions Are Not Security Controls
 
 A prompt saying "do not perform an action" provides behavioral guidance.
 
 Withholding the capability to perform that action provides the stronger technical control.
 
-The system therefore combines behavioral policy with least-privilege enforcement.
+The system therefore combines behavioral policy with technical least privilege.
 
-### Autonomous research does not require autonomous authority
+### More Capable Models Are Not a Substitute for Architecture
 
-The system can search aggressively while remaining unable to apply, communicate externally, modify infrastructure, or expand its own permissions.
+A larger model may compensate for unnecessary orchestration complexity.
 
-That separation is central to the architecture.
+That does not make the architecture simpler, more deterministic, or more secure.
+
+The objective is to expose only the complexity required to perform the mission.
 
 ---
 
@@ -612,7 +499,7 @@ The project applies several principles commonly used in enterprise security arch
 - explicit trust boundaries
 - evidence provenance
 - separation of duties
-- minimize blast radius
+- minimized blast radius
 - human approval for consequential actions
 - fail safely under uncertainty
 - deterministic controls around probabilistic reasoning
@@ -642,12 +529,14 @@ It is an experiment in building a **constrained autonomous research system** whe
 ```text
 .
 ├── README.md
+├── CASE_STUDY_TOOL_SEARCH.md
 ├── AGENTS.md
 ├── SEARCH_RULES.md
-├── CASE_STUDY_TOOL_SEARCH.md
 └── docs/
     └── architecture.md
 ```
+
+> **Note:** Some artifacts shown above are planned and will be added as the public documentation is sanitized and finalized.
 
 Personal evidence, private targeting criteria, infrastructure identifiers, authentication material, machine-specific details, and operational secrets are intentionally excluded.
 
@@ -658,18 +547,18 @@ Personal evidence, private targeting criteria, infrastructure identifiers, authe
 The public repository intentionally does not contain:
 
 - personal resume data
-- LinkedIn evidence
+- private professional-history evidence
 - private career strategy
 - employer targeting lists
 - compensation thresholds
-- private calibration roles
+- private role calibration
 - IP addresses
 - private hostnames
 - authentication tokens
 - API keys
 - account identifiers
 - machine-specific configuration
-- private network details
+- private network identifiers
 
 The published artifacts document the transferable engineering methodology without exposing the private operational environment.
 
